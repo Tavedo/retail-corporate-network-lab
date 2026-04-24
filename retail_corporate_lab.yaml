@@ -1,0 +1,708 @@
+annotations:
+  - border_color: '#00000000'
+    border_style: ''
+    color: '#1F4E79'
+    rotation: 0
+    text_bold: true
+    text_content: 'INTERNET'
+    text_font: monospace
+    text_italic: false
+    text_size: 14
+    text_unit: pt
+    thickness: 1
+    type: text
+    x1: -120.0
+    y1: -920.0
+    z_index: 0
+  - border_color: '#00000000'
+    border_style: ''
+    color: '#1F4E79'
+    rotation: 0
+    text_bold: true
+    text_content: "WAN LINK\n172.16.0.0/30\nOSPF Area 0"
+    text_font: monospace
+    text_italic: false
+    text_size: 12
+    text_unit: pt
+    thickness: 1
+    type: text
+    x1: 200.0
+    y1: -580.0
+    z_index: 0
+smart_annotations:
+  - tag: HQ Site
+    is_on: true
+    padding: 40
+    label: "HQ Site — Barcelona"
+    fill_color: '#1F4E7920'
+    border_color: '#1F4E7980'
+    z_index: 1
+  - tag: Branch Site
+    is_on: true
+    padding: 40
+    label: "Branch Store — Site 2"
+    fill_color: '#0F6E5620'
+    border_color: '#0F6E5680'
+    z_index: 2
+nodes:
+  - id: n0
+    label: ext-conn-0
+    node_definition: external_connector
+    x: -200
+    y: -880
+    tags: []
+    interfaces:
+      - id: i0
+        label: port
+        type: physical
+        slot: 0
+
+  - id: n1
+    label: HQ-ROUTER
+    node_definition: iosv
+    x: -200
+    y: -720
+    tags:
+      - HQ Site
+    configuration: |
+      hostname HQ-ROUTER
+      !
+      ip routing
+      !
+      interface Loopback0
+       ip address 1.1.1.1 255.255.255.255
+       ip ospf 1 area 0
+      !
+      interface GigabitEthernet0/0
+       description UPLINK-TO-INTERNET
+       ip address 203.0.113.2 255.255.255.252
+       ip nat outside
+       no shutdown
+      !
+      interface GigabitEthernet0/1
+       description UPLINK-TO-HQ-CORE-SW
+       ip address 10.0.0.1 255.255.255.252
+       ip ospf 1 area 0
+       ip nat inside
+       no shutdown
+      !
+      interface GigabitEthernet0/2
+       description WAN-TO-BRANCH
+       ip address 172.16.0.1 255.255.255.252
+       ip ospf 1 area 0
+       ip nat inside
+       no shutdown
+      !
+      router ospf 1
+       router-id 1.1.1.1
+       passive-interface GigabitEthernet0/0
+       default-information originate always
+      !
+      ip route 0.0.0.0 0.0.0.0 203.0.113.1
+      !
+      ip nat inside source list NAT-TRAFFIC interface GigabitEthernet0/0 overload
+      !
+      ip access-list standard NAT-TRAFFIC
+       permit 10.0.0.0 0.255.255.255
+       permit 172.16.0.0 0.0.255.255
+      !
+      end
+    interfaces:
+      - id: i0
+        label: Loopback0
+        type: loopback
+      - id: i1
+        label: GigabitEthernet0/0
+        type: physical
+        slot: 0
+      - id: i2
+        label: GigabitEthernet0/1
+        type: physical
+        slot: 1
+      - id: i3
+        label: GigabitEthernet0/2
+        type: physical
+        slot: 2
+
+  - id: n2
+    label: HQ-CORE-SW
+    node_definition: iosvl2
+    x: -200
+    y: -520
+    tags:
+      - HQ Site
+    configuration: |
+      hostname HQ-CORE-SW
+      !
+      ip routing
+      !
+      vlan 10
+       name MANAGEMENT
+      vlan 20
+       name STAFF
+      vlan 30
+       name POS
+      vlan 40
+       name GUEST-WIFI
+      vlan 50
+       name CAMERAS
+      vlan 60
+       name SERVERS
+      !
+      interface Loopback0
+       ip address 3.3.3.3 255.255.255.255
+      !
+      interface GigabitEthernet0/0
+       description UPLINK-TO-HQ-ROUTER
+       no switchport
+       ip address 10.0.0.2 255.255.255.252
+       ip ospf 1 area 0
+       no shutdown
+      !
+      interface GigabitEthernet0/1
+       description TRUNK-TO-HQ-ACC-SW1
+       switchport trunk encapsulation dot1q
+       switchport mode trunk
+       switchport trunk allowed vlan 10,20,30,40,50,60
+       no shutdown
+      !
+      interface GigabitEthernet0/2
+       description TRUNK-TO-HQ-ACC-SW2
+       switchport trunk encapsulation dot1q
+       switchport mode trunk
+       switchport trunk allowed vlan 10,20,30,40,50,60
+       no shutdown
+      !
+      interface Vlan10
+       description MANAGEMENT
+       ip address 10.10.10.1 255.255.255.0
+       ip ospf 1 area 0
+       no shutdown
+      !
+      interface Vlan20
+       description STAFF
+       ip address 10.20.20.1 255.255.255.0
+       ip ospf 1 area 0
+       no shutdown
+      !
+      interface Vlan30
+       description POS
+       ip address 10.30.30.1 255.255.255.0
+       ip ospf 1 area 0
+       no shutdown
+      !
+      interface Vlan40
+       description GUEST-WIFI
+       ip address 10.40.40.1 255.255.255.0
+       no shutdown
+      !
+      interface Vlan50
+       description CAMERAS
+       ip address 10.50.50.1 255.255.255.0
+       no shutdown
+      !
+      interface Vlan60
+       description SERVERS
+       ip address 10.60.60.1 255.255.255.0
+       ip ospf 1 area 0
+       no shutdown
+      !
+      router ospf 1
+       router-id 3.3.3.3
+       passive-interface Vlan20
+       passive-interface Vlan30
+       passive-interface Vlan40
+       passive-interface Vlan50
+       passive-interface Vlan60
+      !
+      ip dhcp excluded-address 10.10.10.1 10.10.10.10
+      ip dhcp excluded-address 10.20.20.1 10.20.20.10
+      ip dhcp excluded-address 10.30.30.1 10.30.30.10
+      ip dhcp excluded-address 10.40.40.1 10.40.40.10
+      ip dhcp excluded-address 10.50.50.1 10.50.50.10
+      ip dhcp excluded-address 10.60.60.1 10.60.60.10
+      !
+      ip dhcp pool MANAGEMENT
+       network 10.10.10.0 255.255.255.0
+       default-router 10.10.10.1
+       dns-server 8.8.8.8
+      !
+      ip dhcp pool STAFF
+       network 10.20.20.0 255.255.255.0
+       default-router 10.20.20.1
+       dns-server 8.8.8.8
+      !
+      ip dhcp pool POS
+       network 10.30.30.0 255.255.255.0
+       default-router 10.30.30.1
+       dns-server 8.8.8.8
+      !
+      ip dhcp pool GUEST-WIFI
+       network 10.40.40.0 255.255.255.0
+       default-router 10.40.40.1
+       dns-server 8.8.8.8
+      !
+      ip dhcp pool CAMERAS
+       network 10.50.50.0 255.255.255.0
+       default-router 10.50.50.1
+       dns-server 8.8.8.8
+      !
+      ip dhcp pool SERVERS
+       network 10.60.60.0 255.255.255.0
+       default-router 10.60.60.1
+       dns-server 8.8.8.8
+      !
+      ip access-list extended GUEST-ISOLATION
+       deny   ip 10.40.40.0 0.0.0.255 10.0.0.0 0.255.255.255
+       permit ip 10.40.40.0 0.0.0.255 any
+      !
+      ip access-list extended POS-ISOLATION
+       permit ip 10.30.30.0 0.0.0.255 10.60.60.0 0.0.0.255
+       deny   ip 10.30.30.0 0.0.0.255 10.0.0.0 0.255.255.255
+       permit ip 10.30.30.0 0.0.0.255 any
+      !
+      interface Vlan40
+       ip access-group GUEST-ISOLATION in
+      !
+      interface Vlan30
+       ip access-group POS-ISOLATION in
+      !
+      spanning-tree mode rapid-pvst
+      end
+    interfaces:
+      - id: i0
+        label: Loopback0
+        type: loopback
+      - id: i1
+        label: GigabitEthernet0/0
+        type: physical
+        slot: 0
+      - id: i2
+        label: GigabitEthernet0/1
+        type: physical
+        slot: 1
+      - id: i3
+        label: GigabitEthernet0/2
+        type: physical
+        slot: 2
+
+  - id: n3
+    label: HQ-ACC-SW1
+    node_definition: iosvl2
+    x: -380
+    y: -320
+    tags:
+      - HQ Site
+    configuration: |
+      hostname HQ-ACC-SW1
+      !
+      vlan 10
+       name MANAGEMENT
+      vlan 20
+       name STAFF
+      vlan 30
+       name POS
+      vlan 40
+       name GUEST-WIFI
+      !
+      interface GigabitEthernet0/0
+       description UPLINK-TO-CORE-SW
+       switchport trunk encapsulation dot1q
+       switchport mode trunk
+       switchport trunk allowed vlan 10,20,30,40
+       no shutdown
+      !
+      interface GigabitEthernet0/1
+       description HQ-STAFF-PC
+       switchport mode access
+       switchport access vlan 20
+       spanning-tree portfast
+       no shutdown
+      !
+      interface GigabitEthernet0/2
+       description HQ-POS-PC
+       switchport mode access
+       switchport access vlan 30
+       spanning-tree portfast
+       no shutdown
+      !
+      interface GigabitEthernet0/3
+       description GUEST-WIFI-AP-SIMULATED
+       switchport mode access
+       switchport access vlan 40
+       spanning-tree portfast
+       no shutdown
+      !
+      interface Vlan10
+       description MANAGEMENT
+       ip address 10.10.10.11 255.255.255.0
+       no shutdown
+      !
+      ip default-gateway 10.10.10.1
+      !
+      spanning-tree mode rapid-pvst
+      end
+    interfaces:
+      - id: i0
+        label: Loopback0
+        type: loopback
+      - id: i1
+        label: GigabitEthernet0/0
+        type: physical
+        slot: 0
+      - id: i2
+        label: GigabitEthernet0/1
+        type: physical
+        slot: 1
+      - id: i3
+        label: GigabitEthernet0/2
+        type: physical
+        slot: 2
+      - id: i4
+        label: GigabitEthernet0/3
+        type: physical
+        slot: 3
+
+  - id: n4
+    label: HQ-ACC-SW2
+    node_definition: iosvl2
+    x: -20
+    y: -320
+    tags:
+      - HQ Site
+    configuration: |
+      hostname HQ-ACC-SW2
+      !
+      vlan 10
+       name MANAGEMENT
+      vlan 50
+       name CAMERAS
+      vlan 60
+       name SERVERS
+      !
+      interface GigabitEthernet0/0
+       description UPLINK-TO-CORE-SW
+       switchport trunk encapsulation dot1q
+       switchport mode trunk
+       switchport trunk allowed vlan 10,50,60
+       no shutdown
+      !
+      interface GigabitEthernet0/1
+       description HQ-SERVER-PC
+       switchport mode access
+       switchport access vlan 60
+       spanning-tree portfast
+       no shutdown
+      !
+      interface GigabitEthernet0/2
+       description CAMERA-SIMULATED
+       switchport mode access
+       switchport access vlan 50
+       spanning-tree portfast
+       no shutdown
+      !
+      interface Vlan10
+       description MANAGEMENT
+       ip address 10.10.10.12 255.255.255.0
+       no shutdown
+      !
+      ip default-gateway 10.10.10.1
+      !
+      spanning-tree mode rapid-pvst
+      end
+    interfaces:
+      - id: i0
+        label: Loopback0
+        type: loopback
+      - id: i1
+        label: GigabitEthernet0/0
+        type: physical
+        slot: 0
+      - id: i2
+        label: GigabitEthernet0/1
+        type: physical
+        slot: 1
+      - id: i3
+        label: GigabitEthernet0/2
+        type: physical
+        slot: 2
+
+  - id: n5
+    label: HQ-STAFF-PC
+    node_definition: desktop
+    x: -480
+    y: -140
+    tags:
+      - HQ Site
+    interfaces:
+      - id: i0
+        label: eth0
+        type: physical
+        slot: 0
+
+  - id: n6
+    label: HQ-SERVER
+    node_definition: desktop
+    x: -20
+    y: -140
+    tags:
+      - HQ Site
+    interfaces:
+      - id: i0
+        label: eth0
+        type: physical
+        slot: 0
+
+  - id: n7
+    label: BRANCH-ROUTER
+    node_definition: iosv
+    x: 300
+    y: -720
+    tags:
+      - Branch Site
+    configuration: |
+      hostname BRANCH-ROUTER
+      !
+      ip routing
+      !
+      interface Loopback0
+       ip address 2.2.2.2 255.255.255.255
+       ip ospf 1 area 0
+      !
+      interface GigabitEthernet0/0
+       description WAN-TO-HQ
+       ip address 172.16.0.2 255.255.255.252
+       ip ospf 1 area 0
+       no shutdown
+      !
+      interface GigabitEthernet0/1
+       description TRUNK-TO-BRANCH-SW
+       no shutdown
+      !
+      interface GigabitEthernet0/1.20
+       description STAFF-VLAN
+       encapsulation dot1Q 20
+       ip address 10.20.21.1 255.255.255.0
+       ip ospf 1 area 0
+       no shutdown
+      !
+      interface GigabitEthernet0/1.30
+       description POS-VLAN
+       encapsulation dot1Q 30
+       ip address 10.30.31.1 255.255.255.0
+       ip ospf 1 area 0
+       no shutdown
+      !
+      interface GigabitEthernet0/1.40
+       description GUEST-WIFI-VLAN
+       encapsulation dot1Q 40
+       ip address 10.40.41.1 255.255.255.0
+       no shutdown
+      !
+      router ospf 1
+       router-id 2.2.2.2
+       passive-interface GigabitEthernet0/1.20
+       passive-interface GigabitEthernet0/1.30
+       passive-interface GigabitEthernet0/1.40
+      !
+      ip dhcp excluded-address 10.20.21.1 10.20.21.10
+      ip dhcp excluded-address 10.30.31.1 10.30.31.10
+      ip dhcp excluded-address 10.40.41.1 10.40.41.10
+      !
+      ip dhcp pool BRANCH-STAFF
+       network 10.20.21.0 255.255.255.0
+       default-router 10.20.21.1
+       dns-server 8.8.8.8
+      !
+      ip dhcp pool BRANCH-POS
+       network 10.30.31.0 255.255.255.0
+       default-router 10.30.31.1
+       dns-server 8.8.8.8
+      !
+      ip dhcp pool BRANCH-GUEST
+       network 10.40.41.0 255.255.255.0
+       default-router 10.40.41.1
+       dns-server 8.8.8.8
+      !
+      end
+    interfaces:
+      - id: i0
+        label: Loopback0
+        type: loopback
+      - id: i1
+        label: GigabitEthernet0/0
+        type: physical
+        slot: 0
+      - id: i2
+        label: GigabitEthernet0/1
+        type: physical
+        slot: 1
+
+  - id: n8
+    label: BRANCH-SW
+    node_definition: iosvl2
+    x: 300
+    y: -520
+    tags:
+      - Branch Site
+    configuration: |
+      hostname BRANCH-SW
+      !
+      vlan 20
+       name STAFF
+      vlan 30
+       name POS
+      vlan 40
+       name GUEST-WIFI
+      !
+      interface GigabitEthernet0/0
+       description UPLINK-TO-BRANCH-ROUTER
+       switchport trunk encapsulation dot1q
+       switchport mode trunk
+       switchport trunk allowed vlan 20,30,40
+       no shutdown
+      !
+      interface GigabitEthernet0/1
+       description BRANCH-STAFF-PC
+       switchport mode access
+       switchport access vlan 20
+       spanning-tree portfast
+       no shutdown
+      !
+      interface GigabitEthernet0/2
+       description BRANCH-POS-PC
+       switchport mode access
+       switchport access vlan 30
+       spanning-tree portfast
+       no shutdown
+      !
+      interface Vlan20
+       description MANAGEMENT-SVI
+       ip address 10.20.21.11 255.255.255.0
+       no shutdown
+      !
+      ip default-gateway 10.20.21.1
+      !
+      spanning-tree mode rapid-pvst
+      end
+    interfaces:
+      - id: i0
+        label: Loopback0
+        type: loopback
+      - id: i1
+        label: GigabitEthernet0/0
+        type: physical
+        slot: 0
+      - id: i2
+        label: GigabitEthernet0/1
+        type: physical
+        slot: 1
+      - id: i3
+        label: GigabitEthernet0/2
+        type: physical
+        slot: 2
+
+  - id: n9
+    label: BRANCH-POS-PC
+    node_definition: desktop
+    x: 180
+    y: -320
+    tags:
+      - Branch Site
+    interfaces:
+      - id: i0
+        label: eth0
+        type: physical
+        slot: 0
+
+  - id: n10
+    label: BRANCH-STAFF-PC
+    node_definition: desktop
+    x: 420
+    y: -320
+    tags:
+      - Branch Site
+    interfaces:
+      - id: i0
+        label: eth0
+        type: physical
+        slot: 0
+
+links:
+  - id: l0
+    n1: n0
+    n2: n1
+    i1: i0
+    i2: i1
+    label: ext-conn-0 <-> HQ-ROUTER G0/0
+  - id: l1
+    n1: n1
+    n2: n2
+    i1: i2
+    i2: i1
+    label: HQ-ROUTER G0/1 <-> HQ-CORE-SW G0/0
+  - id: l2
+    n1: n1
+    n2: n7
+    i1: i3
+    i2: i1
+    label: HQ-ROUTER G0/2 <-> BRANCH-ROUTER G0/0 [WAN]
+  - id: l3
+    n1: n2
+    n2: n3
+    i1: i2
+    i2: i1
+    label: HQ-CORE-SW G0/1 <-> HQ-ACC-SW1 G0/0
+  - id: l4
+    n1: n2
+    n2: n4
+    i1: i3
+    i2: i1
+    label: HQ-CORE-SW G0/2 <-> HQ-ACC-SW2 G0/0
+  - id: l5
+    n1: n3
+    n2: n5
+    i1: i2
+    i2: i0
+    label: HQ-ACC-SW1 G0/1 <-> HQ-STAFF-PC eth0
+  - id: l6
+    n1: n4
+    n2: n6
+    i1: i2
+    i2: i0
+    label: HQ-ACC-SW2 G0/1 <-> HQ-SERVER eth0
+  - id: l7
+    n1: n7
+    n2: n8
+    i1: i2
+    i2: i1
+    label: BRANCH-ROUTER G0/1 <-> BRANCH-SW G0/0
+  - id: l8
+    n1: n8
+    n2: n9
+    i1: i2
+    i2: i0
+    label: BRANCH-SW G0/1 <-> BRANCH-POS-PC eth0
+  - id: l9
+    n1: n8
+    n2: n10
+    i1: i3
+    i2: i0
+    label: BRANCH-SW G0/2 <-> BRANCH-STAFF-PC eth0
+
+lab:
+  title: Retail-Corporate-Network-Lab
+  version: 0.3.0
+  description: >
+    Enterprise retail corporate network — HQ and branch store.
+    Covers LAN/WAN/WLAN concepts: VLANs, inter-VLAN routing, OSPF,
+    DHCP, ACL security, STP, and multi-site WAN connectivity.
+    Built for Plexus Tech network technician role preparation.
+  notes: >
+    Requires iosv and iosvl2 images. Import via CML UI: Tools > Import Lab.
+    Configurations are embedded in the topology — boot order:
+    1. HQ-ROUTER first
+    2. HQ-CORE-SW
+    3. BRANCH-ROUTER
+    4. Access switches and PCs last.
+    VLAN summary: 10=Mgmt 20=Staff 30=POS 40=Guest 50=Cameras 60=Servers
