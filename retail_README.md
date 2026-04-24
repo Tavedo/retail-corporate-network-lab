@@ -2,7 +2,6 @@
 
 Two-site enterprise corporate network built in Cisco Modeling Labs.
 Simulates a retail company with HQ and one branch store.
-Built as hands-on preparation for network technician roles covering LAN/WAN/WLAN environments.
 
 ---
 
@@ -191,5 +190,4 @@ simulating multi-country African connectivity.
 
 ---
 
-*Built as part of network technician interview preparation.*
 *CCNA certified — hands-on lab portfolio.*
