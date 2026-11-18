@@ -1,0 +1,19 @@
+# CML topology exports (kept local; may embed device configs)
+*.yaml
+topology.yaml
+
+# but the pyATS testbed MUST stay tracked
+!testbed/testbed.yaml
+
+# pyATS / Python runtime
+__pycache__/
+*.pyc
+*.log
+archive/
+runinfo/
+*.zip
+
+# venv / local env
+venv/
+.venv/
+env.sh

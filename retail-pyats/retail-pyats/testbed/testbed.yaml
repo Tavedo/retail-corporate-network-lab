@@ -1,0 +1,39 @@
+# ----------------------------------------------------------------------
+#  pyATS testbed - Retail Corporate Network Lab (WAN HA)
+#
+#  Same control-node model as the SP lab: run from a Linux NOC node that
+#  can reach the device management IPs. Telnet is used for the closed lab
+#  management segment (swap to ssh when devices run modern crypto).
+#
+#  >>> CONFIRM the two management IPs below against your lab <<<
+#  (loopbacks reachable from your control node, or console-server entries)
+#
+#  Credentials come from environment variables:
+#     export PYATS_USERNAME=netauto
+#     export PYATS_PASSWORD='Cisco123!'
+#     export PYATS_ENABLE='Cisco123!'
+# ----------------------------------------------------------------------
+testbed:
+  name: Retail-WAN-HA
+  credentials:
+    default:
+      username: "%ENV{PYATS_USERNAME}"
+      password: "%ENV{PYATS_PASSWORD}"
+    enable:
+      password: "%ENV{PYATS_ENABLE}"
+
+devices:
+  HQ-ROUTER:
+    os: ios
+    type: router
+    connections: {cli: {protocol: telnet, ip: 10.0.0.1}}     # <-- confirm
+  BRANCH-ROUTER:
+    os: ios
+    type: router
+    connections: {cli: {protocol: telnet, ip: 10.0.0.2}}     # <-- confirm
+
+  # Optional: add the L3 switches if you want to validate inter-VLAN / SVIs too
+  # HQ-L3-SWITCH:
+  #   os: ios
+  #   type: switch
+  #   connections: {cli: {protocol: telnet, ip: 10.0.0.3}}
