@@ -46,7 +46,7 @@ crypto isakmp policy 10
  hash sha256
  authentication pre-share
  group 14
-crypto isakmp key RetailVPNKey123 address <peer-transport-ip>
+crypto isakmp key <LAB_PSK> address <peer-transport-ip>
 crypto ipsec transform-set TSET esp-aes 256 esp-sha256-hmac
  mode transport
 crypto ipsec profile RETAIL-VPN
